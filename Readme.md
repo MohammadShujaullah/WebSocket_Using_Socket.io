@@ -1,0 +1,3 @@
+This website is a real-time multi-user chat application built using Node.js, Express, and Socket.IO. When a user opens the site, they enter a nickname and instantly connect to the server through a persistent WebSocket connection. The server keeps track of connected users, notifies others when someone joins or leaves, and maintains an updated online users list.
+
+Users can send messages from the browser, which are first sent to the server and then broadcast to all connected clients with the sender’s nickname attached. As a result, every connected browser updates live without refreshing the page, providing real-time communication along with join/leave notifications and a live chat feed.
