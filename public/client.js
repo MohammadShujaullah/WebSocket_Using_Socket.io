@@ -2,12 +2,29 @@
 const socket = io();
 
 // ask nickname
-const nickname = prompt("Enter your nickname");
-socket.emit("set-nickname", nickname);
+const username = prompt("Enter your name");
+
+socket.on("connect", () => {
+    socket.emit("join", username);
+});
+
 
 const chatdiv = document.getElementById('chat');
 const sendBtn = document.getElementById('sendBtn');
 const messageInput = document.getElementById('message');
+
+
+
+socket.on("online-users", (users) => {
+    const list = document.getElementById("users");
+    list.innerHTML = "";
+
+    users.forEach((user) => {
+        const li = document.createElement("li");
+        li.innerText = user;
+        list.appendChild(li);
+    });
+});
 
 
 socket.on("user-joined", (name) => {

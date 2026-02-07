@@ -22,31 +22,31 @@ app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-const users = new Map();   // socket.id -> nickname
+const users = {};    // socket.id -> nickname
 
+
+//backend main connect hota hai client, to "connections" event trigger hota ha 
 io.on("connection", (socket) => {
 
     console.log("Connected:", socket.id);
 
     // client will send nickname after connecting
-    socket.on("set-nickname", (nickname) => {
+    socket.on("join", (username) => {
+        users[socket.id] = username;
 
-        users.set(socket.id, nickname);
+        console.log(username + " joined with id " + socket.id);
 
-        console.log(`${nickname} joined`);
+        io.emit("online-users", Object.values(users));
 
-        // tell others (not sender)
-        socket.broadcast.emit("user-joined", nickname);
-
-        // send updated online users list to everyone
-        io.emit("online-users", Array.from(users.values()));
+        // notify others
+        socket.broadcast.emit("user-joined", username);
     });
 
 
     // receive message from a client
     socket.on("chat message", (msg) => {
 
-        const nickname = users.get(socket.id);
+        const nickname = users[socket.id];
 
         // user might send before nickname is set
         if (!nickname) return;
@@ -64,18 +64,18 @@ io.on("connection", (socket) => {
 
     socket.on("disconnect", () => {
 
-        const nickname = users.get(socket.id);
+    const username = users[socket.id];
 
-        if (!nickname) return;
+    console.log("User disconnected:", socket.id);
 
-        users.delete(socket.id);
+    if (username) {
+        socket.broadcast.emit("user-left", username);
+        delete users[socket.id];
+    }
 
-        console.log(`${nickname} left`);
+    io.emit("online-users", Object.values(users));
+});
 
-        socket.broadcast.emit("user-left", nickname);
-
-        io.emit("online-users", Array.from(users.values()));
-    });
 });
 
 // socket.broadcast.emit --->    // everyone except sender
